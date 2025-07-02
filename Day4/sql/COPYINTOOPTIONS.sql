@@ -23,11 +23,12 @@ USE SCHEMA LA_SCHEMA;
 
 USE ROLE ACCOUNTADMIN;
 
-USE WAREHOUSE COMPUTE_WH;
+USE WAREHOUSE WAREHOUSE_SMARTOSC;
+-- Create TASK with User Managed Warehouse
 
-RM @internal_named_stage/MOCK1.CSV;
+RM @internal_named_stage1/MOCK1.CSV;
 
-LS @internal_named_stage;
+LS @internal_named_stage1;
 
 -- CSV File Format
 
@@ -51,12 +52,19 @@ CREATE OR REPLACE TABLE LA_DB.LA_SCHEMA.CUSTOMERS_NAMED (
 	"order" NUMBER(38,0) NOT NULL
 );
 
+SELECT * FROM CUSTOMERS_NAMED;
+
 --ON_ERROR = { CONTINUE | SKIP_FILE (DEFAULT IN SNOWPIPE) | SKIP_FILE_<num> | 'SKIP_FILE_<num>%' | ABORT_STATEMENT (DEFAULT IN BULK LOADING) }
 -- Use defaut Copy
 
-COPY INTO customers_named
-FROM @internal_named_stage
+COPY INTO CUSTOMERS_NAMED
+FROM @internal_named_stage1
 FILE_FORMAT = my_csv_ff;
+
+SELECT $1, $2, $3
+FROM @internal_named_stage1
+(FILE_FORMAT => 'my_csv_ff')
+LIMIT 10;
 
 SELECT COUNT(*) FROM customers_named;
 TRUNCATE customers_named;
@@ -64,7 +72,7 @@ TRUNCATE customers_named;
 -- ABORT STATEMENT IS BY DEFAULT
 
 COPY INTO customers_named
-FROM @internal_named_stage
+FROM @internal_named_stage1
 FILE_FORMAT = my_csv_ff
 ON_ERROR = ABORT_STATEMENT;
 
@@ -74,7 +82,7 @@ TRUNCATE customers_named;
 -- Use of CONTINUE to ignore error records
 
 COPY INTO customers_named
-FROM @internal_named_stage
+FROM @internal_named_stage1
 FILE_FORMAT = my_csv_ff
 ON_ERROR = CONTINUE;
 
@@ -85,7 +93,7 @@ TRUNCATE customers_named;
 -- SKIP the file if erroneous record
 
 COPY INTO customers_named
-FROM @internal_named_stage
+FROM @internal_named_stage1
 FILE_FORMAT = my_csv_ff
 ON_ERROR = SKIP_FILE;
 
@@ -95,7 +103,7 @@ TRUNCATE customers_named;
 -- Ignore first 2 error
 
 COPY INTO customers_named
-FROM @internal_named_stage
+FROM @internal_named_stage1
 FILE_FORMAT = my_csv_ff
 ON_ERROR = SKIP_FILE_2;
 
@@ -105,7 +113,7 @@ TRUNCATE customers_named;
 -- Ignore first 2% error
 
 COPY INTO customers_named
-FROM @internal_named_stage
+FROM @internal_named_stage1
 FILE_FORMAT = my_csv_ff
 ON_ERROR = 'SKIP_FILE_2%';
 
@@ -116,7 +124,7 @@ TRUNCATE customers_named;
 -- Size Limit Option, First file will always go through
 
 COPY INTO customers_named
-FROM @internal_named_stage
+FROM @internal_named_stage1
 FILE_FORMAT = my_csv_ff
 SIZE_LIMIT = 640;
 
@@ -126,7 +134,7 @@ TRUNCATE customers_named;
 -- Return Failed file
 
 COPY INTO customers_named
-FROM @internal_named_stage
+FROM @internal_named_stage1
 FILE_FORMAT = my_csv_ff
 ON_ERROR = CONTINUE
 RETURN_FAILED_ONLY  = TRUE;
@@ -137,7 +145,7 @@ TRUNCATE customers_named;
 -- Case sensitive options checks Columns
 
 COPY INTO customers_named
-FROM @internal_named_stage/MOCK.CSV
+FROM @internal_named_stage1/MOCK.CSV
 FILE_FORMAT = my_csv_ff2
 MATCH_BY_COLUMN_NAME = CASE_INSENSITIVE;
 
@@ -170,6 +178,6 @@ TRUNCATE customers_named;
 -- Reverse of TRUNCATECOLUMN
 
 COPY INTO customers_named2
-FROM @internal_named_stage/MOCK.CSV
+FROM @internal_named_stage1/MOCK.CSV
 FILE_FORMAT = my_csv_ff
 ENFORCE_LENGTH =  FALSE;
