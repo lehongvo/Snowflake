@@ -6,7 +6,10 @@ USE SCHEMA LA_SCHEMA;
 
 USE ROLE ACCOUNTADMIN;
 
-USE WAREHOUSE COMPUTE_WH;
+USE WAREHOUSE WAREHOUSE_SMARTOSC;
+
+DROP TABLE IF EXISTS raw_data;
+DROP TABLE IF EXISTS processed_data;
 
 -- Create Source table
 CREATE or REPLACE TABLE raw_data (
@@ -100,7 +103,8 @@ SELECT * FROM processed_data;
 
 -- Update source table record
 UPDATE raw_data SET age = 27 WHERE id = 1;
-
+SELECT * FROM raw_data_stream;
+SELECT * FROM raw_data;
 
 
 -- Delete a record
