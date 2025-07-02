@@ -11,8 +11,8 @@ USE WAREHOUSE COMPUTE_WH;
 -- Create TASK with User Managed Warehouse
 
 CREATE OR REPLACE TASK TASK_DEMO_U
-  WAREHOUSE = COMPUTE_WH
-  SCHEDULE = '1 MINUTE'
+  WAREHOUSE = WAREHOUSE_SMARTOSC
+  SCHEDULE = '2 SECONDS'
 AS
 INSERT INTO my_table (id, name, email) VALUES
   (100, 'User Managed', 'john@example.com');
