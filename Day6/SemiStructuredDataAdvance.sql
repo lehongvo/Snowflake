@@ -1,45 +1,100 @@
 /* CREATE DATABASE AND SCHEMA*/
+
 USE DATABASE LA_DB;
 USE SCHEMA LA_SCHEMA;
-
 /* Use acccountadmin role and WH */
 
 USE ROLE ACCOUNTADMIN;
-
 USE WAREHOUSE COMPUTE_WH;
 
--- Query Result Cache
+-- Create a JSON File format
 
---ALTER SESSION SET  USE_CACHED_RESULT = TRUE/FALSE;
+CREATE OR REPLACE FILE FORMAT myjsonformat TYPE = 'JSON'
+STRIP_OUTER_ARRAY = TRUE;
 
-SELECT * FROM SNOWFLAKE_SAMPLE_DATA.TPCDS_SF100TCL.WEB_RETURNS limit 1000;
+-- Creat a stage
 
-SELECT CURRENT_TIMESTAMP(),* FROM SNOWFLAKE_SAMPLE_DATA.TPCDS_SF100TCL.INVENTORY limit 10000;
+CREATE OR REPLACE STAGE my_jsonfile file_format = myjsonformat;
 
-SELECT CURRENT_DATE(),* FROM SNOWFLAKE_SAMPLE_DATA.TPCDS_SF100TCL.WEB_RETURNS limit 10000;
+-- Create table with Variant option
 
--- Metdata Cache Check
+CREATE OR REPLACE TABLE raw_source (SRC VARIANT);
 
-ALTER WAREHOUSE COMPUTE_WH SUSPEND ;
+-- Upload Json file from SNOWSQL
 
-SELECT COUNT(*) FROM SNOWFLAKE_SAMPLE_DATA.TPCDS_SF100TCL.CATALOG_SALES;
+put file ://C: \ data \ JSON_NEW.json @my_jsonfile AUTO_COMPRESS = FALSE;
+
+-- Copy table into Variant table
+
+COPY INTO raw_source
+FROM @my_jsonfile FILE_FORMAT = myjsonformat;
+    
+-- Check JSON data in table
+
+SELECT * FROM raw_source;
 
 
-SELECT DISTINCT COUNT(*) FROM SNOWFLAKE_SAMPLE_DATA.TPCDS_SF100TCL.CUSTOMER_ADDRESS;
 
--- Warehouse Cache, for adhoc usage of warehouse recommended auto suspend is 5 minutes
--- FOr warehouse meant only for read queries, auto suspend recommended time is 10 minutes
--- Warehouse cache, Local disk cache check
+-- Check and see a column at a time
 
-ALTER SESSION SET  USE_CACHED_RESULT = FALSE;
+SELECT src, src:Department
+FROM   raw_source;
 
-ALTER WAREHOUSE COMPUTE_WH SUSPEND ;
 
-ALTER WAREHOUSE COMPUTE_WH RESUME;
+-- Remove the Quotes
+SELECT  src, src:Department::string AS Dept
+FROM    raw_source;
 
--- Check data in sample table
+-- Traverse the file
 
-SELECT * FROM SNOWFLAKE_SAMPLE_DATA.TPCDS_SF100TCL.INVENTORY limit 1000;
+SELECT src,src:Zone[0].SubZone
+FROM    raw_source;
+
+
+
+SELECT src, src:Zone [0].Division [0].Store
+FROM   raw_source;
+
+
+SELECT src:Department::string, 
+Zone_f.*
+FROM  raw_source,
+    LATERAL FLATTEN(INPUT => SRC:Zone) as Zone_f;
+
+
+create or replace table dump_json as
+SELECT src:Department::string as dep, 
+Zone.value:SubZone :: string as subzone_col,
+div.value:Store :: string as store_col, 
+ord.value:SR :: string as sr_col,
+ord.value:Sales :: string as sales_col
+
+FROM  raw_source,
+    LATERAL FLATTEN(INPUT => SRC:Zone) as Zone,
+    LATERAL FLATTEN(INPUT => zone.value:Division) as div,
+    LATERAL FLATTEN(INPUT => div.value:Orders) as ord;
+
+--create or replace table dump_json as    
+SELECT
+    src:Department::string as dept_col,
+    zone.value:SubZone :: string as subzone_col,
+    div.value:Store :: string  as ord,
+    ord.value:SR :: string as sr_col,
+    ord.value:Sales :: string as sales_col
+    
+FROM
+    raw_source,
+    LATERAL FLATTEN(INPUT => SRC:Zone) as Zone,
+    LATERAL FLATTEN(INPUT => zone.value:Division) as div,
+    LATERAL FLATTEN(INPUT => div.value:Orders) as ord;
+
+
+select * from  dump_json;
+
+
+
+
+
 
 
 
