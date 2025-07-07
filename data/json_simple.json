@@ -1,0 +1,15 @@
+{
+   "customer": [
+     {
+       "address": "San Francisco, CA",
+       "name": "Joyce Ridgely",
+       "phone": "16504378889"
+     }
+   ],
+   "date": "2017-04-28",
+   "dealership": "Valley View Auto Sales",
+   "salesperson": {
+     "id": "55",
+     "name": "Frank Beasley"
+   }
+}

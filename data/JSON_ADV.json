@@ -1,0 +1,74 @@
+[
+  {
+    "Department" : "Food and Beverage",
+    "Zone" : [
+      {
+        "SubZone" : "North",
+        "Division" : [
+          {
+            "Store" : "Food",
+            "Orders" : [
+              {
+                "SR" : "SR 1",
+                "Sales" : 5700
+              },
+              {
+                "SR" : "SR 2",
+                "Sales" : 2000
+              }
+            ]
+          },
+          {
+            "Store" : "Beverages",
+            "Orders" : [
+              {
+                "SR" : "SR 3",
+                "Sales" : 1500
+              },
+              {
+                "SR" : "SR 4",
+                "Sales" : 2345
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "Department" : "Clothing and Accessories",
+    "Zone" : [
+      {
+        "SubZone" : "South",
+        "Division" : [
+          {
+            "Store" : "Clothing",
+            "Orders" : [
+              {
+                "SR" : "SR 1",
+                "Sales" : 2100
+              },
+              {
+                "SR" : "SR 2",
+                "Sales" : 867
+              }
+            ]
+          },
+          {
+            "Store" : "Accessories",
+            "Orders" : [
+              {
+                "SR" : "SR 1",
+                "Sales" : 3200
+              },
+              {
+                "SR" : "SR 2",
+                "Sales" : 8560
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+]
