@@ -23,6 +23,8 @@ LS @internal_UN_stage;
 -- Scoped File URL : Generates a scoped Snowflake-hosted URL to a staged file
 --                   using the stage name and relative file path as inputs.
 
+PUT file:///Users/user/Desktop/NewOPP/images.avif @internal_UN_stage AUTO_COMPRESS = FALSE;
+
 SELECT BUILD_SCOPED_FILE_URL (@internal_UN_stage, 'images.jpg');
 
 -- Stage File URL : Generates a Snowflake-hosted file URL to a staged file 
