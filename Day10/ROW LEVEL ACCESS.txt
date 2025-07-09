@@ -1,0 +1,126 @@
+/* CREATE DATABASE AND SCHEMA*/
+USE DATABASE LA_DB;
+USE SCHEMA LA_SCHEMA;
+
+/* Use acccountadmin role and WH */
+
+USE ROLE ACCOUNTADMIN;
+
+USE WAREHOUSE COMPUTE_WH;
+
+-- Create a sample table
+
+CREATE OR REPLACE TABLE cust_row (
+  id INT,
+  name VARCHAR(255),
+  email VARCHAR(255),
+  department VARCHAR(255)
+);
+
+
+INSERT INTO cust_row (id, name, email, department)
+VALUES (1, 'John Doe', 'john.doe@example.com', 'Sales'),
+       (2, 'Jane Doe', 'jane.doe@example.com', 'Marketing'),
+       (3, 'Peter Smith', 'peter.smith@example.com', 'IT');
+       
+-- Create teh lookup mapping table
+
+CREATE OR REPLACE TABLE mapping_tab (
+
+  curr_role  VARCHAR(255),
+  dept VARCHAR(255)
+  
+);
+
+
+INSERT INTO mapping_tab (curr_role, dept)
+VALUES ('DUMMY_SALES', 'Sales'),
+       ('DUMMY_MARK', 'Marketing'),
+       ('DUMMY_IT', 'IT');
+
+
+SELECT * FROM cust_row;
+
+SELECT * FROM mapping_tab;
+       
+-- Create department wise roles
+
+CREATE OR REPLACE ROLE DUMMY_SALES;
+CREATE OR REPLACE ROLE DUMMY_MARK;
+CREATE OR REPLACE ROLE DUMMY_IT;
+
+-- USAGE on DB, WH, SCHEMA and SELECT on TABLE, Needed in order to access TABLE
+
+GRANT USAGE ON DATABASE LA_DB TO ROLE DUMMY_SALES;
+GRANT USAGE ON DATABASE LA_DB TO ROLE DUMMY_MARK;
+GRANT USAGE ON DATABASE LA_DB TO ROLE DUMMY_IT;
+
+GRANT USAGE ON SCHEMA LA_DB.LA_SCHEMA TO ROLE DUMMY_SALES;
+GRANT USAGE ON SCHEMA LA_DB.LA_SCHEMA TO ROLE DUMMY_MARK;
+GRANT USAGE ON SCHEMA LA_DB.LA_SCHEMA TO ROLE DUMMY_IT;
+
+GRANT USAGE ON WAREHOUSE COMPUTE_WH TO DUMMY_SALES;
+GRANT USAGE ON WAREHOUSE COMPUTE_WH TO DUMMY_MARK;
+GRANT USAGE ON WAREHOUSE COMPUTE_WH TO DUMMY_IT;
+
+
+GRANT SELECT ON TABLE LA_DB.LA_SCHEMA.CUST_ROW TO ROLE DUMMY_SALES;
+GRANT SELECT ON TABLE LA_DB.LA_SCHEMA.CUST_ROW TO ROLE DUMMY_MARK;
+GRANT SELECT ON TABLE LA_DB.LA_SCHEMA.CUST_ROW TO ROLE DUMMY_IT;
+
+
+-- Create user (Not running this)
+
+CREATE USER USER_SALES;
+CREATE USER USER_MARK;
+CREATE USER USER_IT;
+
+GRANT ROLE DUMMY_SALES TO USER TRAINING;
+GRANT ROLE DUMMY_MARK TO USER TRAINING;
+GRANT ROLE DUMMY_IT TO USER TRAINING;
+
+-- Masking policy
+
+create or replace row access policy dept_policy as (department varchar) returns boolean ->
+  'ACCOUNTADMIN' = current_role()
+      or exists (
+            select 1 from mapping_tab
+              where curr_role = current_role()
+                and dept = department
+          )
+;
+
+
+-- Assign the Policy to the table column
+
+ALTER TABLE CUST_ROW ADD ROW ACCESS POLICY dept_policy ON (department);
+
+-- Switch to SALES role and test
+
+USE ROLE DUMMY_SALES;
+
+SELECT * FROM CUST_ROW;
+
+-- Switch to Marketing role and test
+
+USE ROLE DUMMY_MARK;
+
+SELECT * FROM CUST_ROW;
+
+-- Switch to IT role and test
+
+USE ROLE DUMMY_IT;
+
+SELECT * FROM CUST_ROW;
+
+
+USE ROLE ACCOUNTADMIN;
+
+DROP ROW ACCESS POLICY dept_policy;
+
+-- Need to unset the policy from all attached object and then drop
+
+ALTER TABLE CUST_ROW DROP ROW ACCESS POLICY dept_policy ;
+
+
+

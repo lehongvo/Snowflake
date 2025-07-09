@@ -1,0 +1,102 @@
+/* CREATE DATABASE AND SCHEMA*/
+USE DATABASE LA_DB;
+USE SCHEMA LA_SCHEMA;
+
+/* Use acccountadmin role and WH */
+
+USE ROLE ACCOUNTADMIN;
+
+USE WAREHOUSE COMPUTE_WH;
+
+-- Create a sample table
+
+CREATE OR REPLACE TABLE cust (
+  id INT,
+  name VARCHAR(255),
+  email VARCHAR(255),
+  credit_card_number VARCHAR(255)
+);
+
+
+-- Insert sample record
+
+INSERT INTO cust (id, name, email, credit_card_number)
+VALUES (1, 'John Doe', 'john.doe@example.com', '1234-5678-9012-3456'),
+       (2, 'Alex Doe', 'Alex.doe@example.com', '4567-8901-2345-6789');
+
+
+Select * from cust;
+
+-- Create masking policy which allow access to ACCOUNTADMIN and mask for rest
+
+
+CREATE OR REPLACE MASKING POLICY cc_mask AS (val string) returns string ->
+  CASE
+    WHEN current_role() IN ('ACCOUNTADMIN') THEN VAL
+    ELSE '*********'
+  END;
+
+-- Assign the policy to CC column in the table
+
+ALTER TABLE CUST MODIFY COLUMN credit_card_number set masking policy cc_mask;
+
+-- You can check policy assigned to which objects
+
+SELECT * from table(information_schema.policy_references(policy_name=>'cc_mask'));
+
+-- Check data with ACCOUNTADMIN
+
+SELECT * FROM CUST;
+
+-- To check data with DUMMY_ROLE2, lets grant select on the table
+
+GRANT SELECT ON TABLE LA_DB.LA_SCHEMA.CUST TO ROLE DUMMY_ROLE2;
+
+
+-- Use new role and see the data
+
+USE ROLE DUMMY_ROLE2;
+
+SELECT * FROM CUST;
+
+
+-- ALTER command is different the create command
+
+USE ROLE ACCOUNTADMIN;
+
+ALTER MASKING POLICY cc_mask SET BODY ->
+  CASE
+    WHEN current_role() IN ('DUMMY_ROLE2') THEN VAL
+    --ELSE NULL
+    ELSE sha2(val)
+END;
+
+USE ROLE ACCOUNTADMIN;
+
+SELECT * FROM CUST;
+
+-- Use new role and see the data
+
+USE ROLE DUMMY_ROLE2;
+
+SELECT * FROM CUST;
+
+-- Switch to account admin role
+
+USE ROLE ACCOUNTADMIN;
+
+-- DROP the policy
+
+DROP MASKING POLICY cc_mask;
+
+-- Need to unset the policy from all attached object and then drop
+
+ALTER TABLE CUST MODIFY COLUMN credit_card_number unset masking policy;
+
+DROP MASKING POLICY cc_mask;
+
+
+
+
+
+

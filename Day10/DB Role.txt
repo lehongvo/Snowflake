@@ -1,0 +1,77 @@
+/* USE DATABASE AND SCHEMA*/
+USE DATABASE LA_DB;
+USE SCHEMA LA_SCHEMA;
+
+
+
+
+-- Create a new database role named DB_ROLE
+CREATE OR REPLACE DATABASE ROLE DB_ROLE;
+
+
+
+
+
+-- Create or replace the role named ANALYST
+CREATE OR REPLACE ROLE ANALYST;
+
+
+-- Grant the database role LA_DB.DB_ROLE to the role ANALYST
+GRANT DATABASE ROLE LA_DB.DB_ROLE TO ROLE ANALYST;
+
+-- Grant the ANALYST role to the USER TRAINING
+GRANT ROLE ANALYST TO USER TRAINING;
+
+-- Set the current role to ANALYST for the session
+USE ROLE ANALYST;
+
+-- Query all data from the table MY_TABLE in the schema LA_DB.LA_SCHEMA
+SELECT * FROM LA_DB.LA_SCHEMA.MY_TABLE;
+
+
+
+USE ROLE ACCOUNTADMIN;
+
+-- Grant SELECT privilege on all tables in the schema LA_DB.LA_SCHEMA to the role LA_DB.DB_ROLE
+GRANT SELECT ON ALL TABLES IN SCHEMA LA_DB.LA_SCHEMA TO DATABASE ROLE LA_DB.DB_ROLE;
+
+-- Grant USAGE privilege on the schema LA_DB.LA_SCHEMA to the role LA_DB.DB_ROLE
+GRANT USAGE ON SCHEMA LA_DB.LA_SCHEMA TO DATABASE ROLE LA_DB.DB_ROLE;
+
+-- Grant USAGE privilege on the warehouse COMPUTE_WH to the role ANALYST
+GRANT USAGE ON WAREHOUSE COMPUTE_WH TO ROLE ANALYST;
+
+
+-- Show all database roles in the database LA_DB
+SHOW DATABASE ROLES IN DATABASE LA_DB;
+
+-- Set the current role to ANALYST for the session
+USE ROLE ANALYST;
+
+-- Query all data from the table MY_TABLE in the schema LA_DB.LA_SCHEMA
+SELECT * FROM LA_DB.LA_SCHEMA.MY_TABLE;
+
+
+
+
+/* Create Database and Schema*/
+
+CREATE OR REPLACE DATABASE LA_DB_NEW;
+
+USE DATABASE LA_DB_NEW;
+
+CREATE OR REPLACE SCHEMA LA_SCHEMA_NEW;
+
+CREATE OR REPLACE DATABASE ROLE DB_ROLE;
+
+-- Grant the database role LA_DB.DB_ROLE to the role ANALYST
+GRANT DATABASE ROLE DB_ROLE TO ROLE ANALYST;
+
+
+
+SHOW DATABASE ROLES IN DATABASE LA_DB_NEW;
+
+DROP ROLE ANALYST;
+
+
+DROP DATABASE ROLE DB_ROLE1;
